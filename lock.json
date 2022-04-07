@@ -1,0 +1,16 @@
+{
+  "locks": [
+    {
+      "locator": "github.com/ponylang/http-server.git",
+      "revision": "0.4.1"
+    },
+    {
+      "locator": "github.com/titan/pony-bitset-router.git",
+      "revision": "master"
+    },
+    {
+      "locator": "github.com/ponylang/logger.git",
+      "revision": "1.0.1"
+    }
+  ]
+}

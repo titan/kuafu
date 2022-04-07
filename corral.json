@@ -1,0 +1,25 @@
+{
+  "packages": [],
+  "deps": [
+    {
+      "locator": "github.com/ponylang/http-server.git",
+      "version": "0.4.1"
+    },
+    {
+      "locator": "github.com/titan/pony-bitset-router.git",
+      "version": ""
+    },
+    {
+      "locator": "github.com/ponylang/logger.git",
+      "version": "1.0.1"
+    }
+  ],
+  "info": {
+    "description": "",
+    "homepage": "",
+    "license": "",
+    "documentation_url": "",
+    "version": "",
+    "name": ""
+  }
+}
