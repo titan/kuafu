@@ -10,11 +10,11 @@ actor Main
 
     let server =
       Kuafu(tcplauth, env.out)
-        .> get("/", H)
-        .> get("/:name", H)
+        .> get("/", MyHandler~apply())
+        .> get("/:name", MyHandler~apply(), [(DefaultMiddleware~before(), DefaultMiddleware~after())]) // Add default middlware to make compiler happy
         .serve(ServerConfig(where port' = "8080"))
 
-primitive H is RequestHandler
+primitive MyHandler
   fun apply(
     method: Method val,
     uri: URL val,

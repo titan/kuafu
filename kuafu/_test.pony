@@ -139,7 +139,7 @@ class \nodoc\ _TestNormal is UnitTest
     method: Method) ?
   =>
     let logger = StringLogger(Info, h.env.out, _TimestampLogFormatter)
-    let factory = _HandlerFactory(logger, [(method, "/foo/:bar", _FooBarHandler, [])])
+    let factory = _HandlerFactory(logger, [(method, "/foo/:bar", _FooBarHandler~apply(), [])])
     let promise: Promise[String] = Promise[String]
     promise.next[None](recover this~_fulfill(h) end)
     let handler = factory(_TestHTTPSession(h, promise))
@@ -161,8 +161,8 @@ class \nodoc\ _TestNormal is UnitTest
   =>
     h.complete(false)
 
-primitive _FooBarMiddlewareBefore is Middleware
-  fun val before(
+primitive _FooBarMiddlewareBefore
+  fun val apply(
     method: Method val,
     uri: URL val,
     headers: Array[Header val] val,
@@ -187,7 +187,7 @@ class \nodoc\ _TestMiddlewareBefore is UnitTest
     h: TestHelper) ?
   =>
     let logger = StringLogger(Info, h.env.out, _TimestampLogFormatter)
-    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler, [_FooBarMiddlewareBefore])])
+    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler~apply(), [(_FooBarMiddlewareBefore~apply(), DefaultMiddleware~after())])])
     let promise: Promise[String] = Promise[String]
     promise.next[None](recover this~_fulfill(h) end)
     let handler = factory(_TestHTTPSession(h, promise))
@@ -210,8 +210,8 @@ class \nodoc\ _TestMiddlewareBefore is UnitTest
   =>
     h.complete(false)
 
-primitive _FooBarMiddlewareAfter is Middleware
-  fun val after(
+primitive _FooBarMiddlewareAfter
+  fun val apply(
     status: Status val,
     headers: Array[Header val] val,
     body: ByteArrays val)
@@ -237,7 +237,7 @@ class \nodoc\ _TestMiddlewareAfter is UnitTest
     h: TestHelper) ?
   =>
     let logger = StringLogger(Info, h.env.out, _TimestampLogFormatter)
-    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler, [_FooBarMiddlewareAfter])])
+    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler~apply(), [(DefaultMiddleware~before(), _FooBarMiddlewareAfter~apply())])])
     let promise: Promise[String] = Promise[String]
     promise.next[None](recover this~_fulfill(h) end)
     let handler = factory(_TestHTTPSession(h, promise))
@@ -269,7 +269,7 @@ class \nodoc\ _TestMultiMiddleware is UnitTest
     h: TestHelper) ?
   =>
     let logger = StringLogger(Info, h.env.out, _TimestampLogFormatter)
-    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler, [_FooBarMiddlewareBefore; _FooBarMiddlewareAfter])])
+    let factory = _HandlerFactory(logger, [(GET, "/foo/:bar", _FooBarHandler~apply(), [(_FooBarMiddlewareBefore~apply(), DefaultMiddleware~after()); (DefaultMiddleware~before(), _FooBarMiddlewareAfter~apply())])])
     let promise: Promise[String] = Promise[String]
     promise.next[None](recover this~_fulfill(h) end)
     let handler = factory(_TestHTTPSession(h, promise))

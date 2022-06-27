@@ -18,7 +18,7 @@ primitive _TimestampLogFormatter is LogFormatter
 class iso Kuafu
   let _auth: TCPListenAuth val
   let _logger: Logger[String] val
-  let _routes: Array[_Route] iso = recover Array[_Route] end
+  let _routes: Array[Route] iso = recover Array[Route] end
 
   new iso create(
     auth: TCPListenAuth val,
@@ -28,10 +28,15 @@ class iso Kuafu
     _auth = auth
     _logger = StringLogger(log_level, out, _TimestampLogFormatter)
 
+  fun ref add(
+    route: Route)
+  =>
+    _routes.push(route)
+
   fun ref connect(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a CONNECT method on the given URL path with the given
@@ -41,8 +46,8 @@ class iso Kuafu
 
   fun ref delete(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a DELETE method on the given URL path with the given
@@ -52,8 +57,8 @@ class iso Kuafu
 
   fun ref get(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a GET method on the given URL path with the given handler
@@ -63,8 +68,8 @@ class iso Kuafu
 
   fun ref head(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a HEAD method on the given URL path with the given
@@ -74,8 +79,8 @@ class iso Kuafu
 
   fun ref options(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a OPTIONS method on the given URL path with the given
@@ -85,8 +90,8 @@ class iso Kuafu
 
   fun ref patch(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a PATCH method on the given URL path with the given
@@ -96,8 +101,8 @@ class iso Kuafu
 
   fun ref post(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a POST method on the given URL path with the given
@@ -107,8 +112,8 @@ class iso Kuafu
 
   fun ref put(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a PUT method on the given URL path with the given handler
@@ -118,8 +123,8 @@ class iso Kuafu
 
   fun ref trace(
     pattern: String val,
-    handler: RequestHandler val,
-    middlewares: Array[Middleware val] val = [])
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
   =>
     """
     Create a route for a TRACE method on the given URL path with the given

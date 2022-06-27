@@ -37,7 +37,12 @@ primitive RequestDataBuilder
   : RequestData =>
     (method, uri, headers, captures, body)
 
-interface val Middleware
+type Middleware is
+  ( {(Method val, URL val, Array[Header val] val, Array[(String val, String val)] val, ByteArrays val): Promise[(ResponseData | RequestData)]} val // before
+  , {(Status val, Array[Header val] val, ByteArrays val): Promise[ResponseData]} val // after
+  )
+
+primitive DefaultMiddleware
   fun val before(
     method: Method val,
     uri: URL val, // url
@@ -58,24 +63,17 @@ interface val Middleware
     p((status, headers, body))
     p
 
-interface val RequestHandler
-  fun val apply(
-    method: Method val,
-    uri: URL val,
-    headers: Array[Header val] val,
-    captures: Array[(String val, String val)] val,
-    body: ByteArrays val)
-  : Promise[ResponseData]
+type RequestHandler is {(Method val, URL val, Array[Header val] val, Array[(String val, String val)] val, ByteArrays val): Promise[ResponseData]} val
 
-type _Route is
+type Route is
   ( Method val // http method
   , String val // url path
-  , RequestHandler val // request handler
+  , RequestHandler // request handler
   , Array[Middleware] val // middlewares
   )
 
 type _HandlerPair is
-  ( RequestHandler val
+  ( RequestHandler
   , Array[Middleware] val
   )
 
@@ -167,7 +165,7 @@ class _Handler is Handler
   =>
     let method = req.method()
     let path = req.uri().path
-    let headers = recover Array[Header val].>concat(req.headers()) end
+    let headers = recover Array[Header val] .> concat(req.headers()) end
     (let handler_pair: _HandlerPair, let captures: Array[(String val, String val)] val) =
       match method
       | CONNECT =>
@@ -359,10 +357,10 @@ class val _HandlerFactory is HandlerFactory
 
   new val create(
     logger: Logger[String] val,
-    routes: Array[_Route] val)
+    routes: Array[Route] val)
   =>
     _logger = logger
-    _not_found = (_NotFound, [])
+    _not_found = (_NotFoundHandler~apply(), [])
     let connect_router: Router trn = Router
     let connect_handlers: Array[_HandlerPair] trn = recover trn Array[_HandlerPair] end
     let delete_router: Router trn = Router
@@ -497,7 +495,7 @@ class val _HandlerFactory is HandlerFactory
       _trace_handlers
     ) end
 
-primitive _NotFound is RequestHandler
+primitive _NotFoundHandler
   fun val apply(
     method: Method val,
     uri: URL val,
@@ -526,7 +524,7 @@ primitive _RouteHandler
         (index, x)
       })
     else
-      let p: Promise[(ResponseData | RequestData)] = middlewares(index)?.before(method, uri, headers, captures, body)
+      let p: Promise[(ResponseData | RequestData)] = middlewares(index)?._1(method, uri, headers, captures, body)
       p.flatten_next[(USize val, ResponseData)]({(x: (ResponseData | RequestData))(self: _RouteHandler val = this): Promise[(USize val, ResponseData)]? =>
         match x
         | let x': ResponseData =>
@@ -551,7 +549,7 @@ primitive _RouteHandler
       p((status, headers, body))
       p
     else
-      let p = middlewares(index)?.after(status, headers, body)
+      let p = middlewares(index)?._2(status, headers, body)
       p.flatten_next[ResponseData]({(x: ResponseData)(self: _RouteHandler val = this): Promise[ResponseData]? =>
         self.after(index - 1, x._1, x._2, x._3, middlewares)?
       })

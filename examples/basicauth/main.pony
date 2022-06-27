@@ -16,10 +16,10 @@ actor Main
 
     let server =
       Kuafu(tcplauth, env.out)
-        .> get("/", H, [ BasicAuth("My Realm", consume accounts') ])
+        .> get("/", H~apply(), [ (BasicAuth~before("My Realm", consume accounts'), DefaultMiddleware~after())])
         .serve(ServerConfig(where port' = "8080"))
 
-primitive H is RequestHandler
+primitive H
   fun apply(
     method: Method val,
     uri: URL val,
@@ -30,21 +30,13 @@ primitive H is RequestHandler
     p(ResponseDataBuilder(StatusOK, [as (String val, String val):], ByteArrays("Hello".array())))
     p
 
-class BasicAuth is Middleware
+primitive BasicAuth
   """
   Performs Basic Authentication as described in RFC 2617
   """
-  let _realm: String val
-  let _accounts: Map[String val, String val] val
-
-  new val create(
-    realm: String val,
-    accounts: Map[String val, String val] val)
-  =>
-    _realm = realm
-    _accounts = consume accounts
-
   fun val before(
+    realm: String val,
+    accounts: Map[String val, String val] val,
     method: Method val,
     uri: URL val,
     headers: Array[Header val] val,
@@ -61,18 +53,18 @@ class BasicAuth is Middleware
         if creds.size() == 2 then
           let given_un = creds(0)?
           let given_pw = creds(1)?
-          if _accounts(given_un)? == given_pw then
+          if accounts(given_un)? == given_pw then
             p(RequestDataBuilder(method, uri, headers, captures, body))
           else
-            p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; _realm; ""].values()))], ByteArrays))
+            p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; realm; ""].values()))], ByteArrays))
           end
         else
-          p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; _realm; ""].values()))], ByteArrays))
+          p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; realm; ""].values()))], ByteArrays))
         end
       else
-        p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; _realm; ""].values()))], ByteArrays))
+        p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; realm; ""].values()))], ByteArrays))
       end
     else
-      p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; _realm; ""].values()))], ByteArrays))
+      p(ResponseDataBuilder(StatusUnauthorized, [("WWW-Authenticate", "\"".join(["Basic realm="; realm; ""].values()))], ByteArrays))
     end
     p
