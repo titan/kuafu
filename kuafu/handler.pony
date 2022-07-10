@@ -357,10 +357,11 @@ class val _HandlerFactory is HandlerFactory
 
   new val create(
     logger: Logger[String] val,
-    routes: Array[Route] val)
+    routes: Array[Route] val,
+    not_found: _HandlerPair = (_NotFoundHandler~apply(), []))
   =>
     _logger = logger
-    _not_found = (_NotFoundHandler~apply(), [])
+    _not_found = not_found
     let connect_router: Router trn = Router
     let connect_handlers: Array[_HandlerPair] trn = recover trn Array[_HandlerPair] end
     let delete_router: Router trn = Router

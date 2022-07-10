@@ -19,6 +19,7 @@ class iso Kuafu
   let _auth: TCPListenAuth val
   let _logger: Logger[String] val
   let _routes: Array[Route] iso = recover Array[Route] end
+  var _not_found: _HandlerPair = (_NotFoundHandler~apply(), [])
 
   new iso create(
     auth: TCPListenAuth val,
@@ -132,6 +133,15 @@ class iso Kuafu
     """
     _routes.push((TRACE, pattern, handler, middlewares))
 
+  fun ref not_found(
+    handler: RequestHandler,
+    middlewares: Array[Middleware] val = [])
+  =>
+    """
+    Setup handler and middlewares for routes not found.
+    """
+    _not_found = (handler~apply(), middlewares)
+
   fun val serve(
     config: ServerConfig)
   : Server =>
@@ -139,5 +149,5 @@ class iso Kuafu
     Serve incoming HTTP requests.
     """
     let server_notify = _ServerNotify(_logger)
-    let handler_factory = _HandlerFactory(_logger, _routes)
+    let handler_factory = _HandlerFactory(_logger, _routes, _not_found)
     Server(_auth, consume server_notify, handler_factory, config)
