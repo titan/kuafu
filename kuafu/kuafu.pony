@@ -2,6 +2,7 @@ use "collections"
 use "http_server"
 use "logger"
 use "net"
+use "net_ssl"
 use "time"
 
 primitive _TimestampLogFormatter is LogFormatter
@@ -143,11 +144,12 @@ class iso Kuafu
     _not_found = (handler~apply(), middlewares)
 
   fun val serve(
-    config: ServerConfig)
+    config: ServerConfig,
+    sslctx: (SSLContext | None) = None)
   : Server =>
     """
     Serve incoming HTTP requests.
     """
     let server_notify = _ServerNotify(_logger)
     let handler_factory = _HandlerFactory(_logger, _routes, _not_found)
-    Server(_auth, consume server_notify, handler_factory, config)
+    Server(_auth, consume server_notify, handler_factory, config, sslctx)
